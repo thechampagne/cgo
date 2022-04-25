@@ -1,0 +1,360 @@
+#ifndef __CGO_PATH_H__
+#define __CGO_PATH_H__
+
+/**
+ * Base returns the last element of path. Trailing slashes are removed before extracting the last element.
+ * If the path is empty, Base returns ".". If the path consists entirely of slashes, Base returns "/".
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *  char* path1 = path_base("/a/b");
+ *  char* path2 = path_base("/");
+ *  char* path3 = path_base("");
+ *  printf("%s\n", path1);
+ *  printf("%s\n", path2);
+ *  printf("%s\n", path3);
+ *  free(path1);
+ *  free(path2);
+ *  free(path3);
+ *  return 0;
+ *  }
+ * * *
+ * Output:
+ * * *
+ * b
+ * /
+ * .
+ * * *
+ *
+ * @param path
+ * @return dynamic string
+ */
+char *path_base(char *path);
+
+/**
+ * Clean returns the shortest path name equivalent to path by purely lexical processing.
+ * It applies the following rules iteratively until no further processing can be done:
+ *
+ * 1. Replace multiple slashes with a single slash.
+ * 2. Eliminate each . path name element (the current directory).
+ * 3. Eliminate each inner .. path name element (the parent directory)
+ *  along with the non-.. element that precedes it.
+ * 4. Eliminate .. elements that begin a rooted path:
+ *  that is, replace "/.." by "/" at the beginning of a path.
+ *
+ * The returned path ends in a slash only if it is the root "/".
+ * If the result of this process is an empty string, Clean returns the string ".".
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   char* paths[] = {
+ * 		"a/c",
+ * 		"a//c",
+ * 		"a/c/.",
+ * 		"a/c/b/..",
+ * 		"/../a/c",
+ * 		"/../a/b/../././/c",
+ * 		"",
+ * 	};
+ *
+ *   for (int i = 0; i < 7; i++)
+ *   {
+ *     char* path = path_clean(paths[i]);
+ *     printf("Clean(\"%s\") = \"%s\"\n", paths[i], path);
+ *     free(path);
+ *   }
+ *
+ *   return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * Clean("a/c") = "a/c"
+ * Clean("a//c") = "a/c"
+ * Clean("a/c/.") = "a/c"
+ * Clean("a/c/b/..") = "a/c"
+ * Clean("/../a/c") = "/a/c"
+ * Clean("/../a/b/../././/c") = "/a/c"
+ * Clean("") = "."
+ * * *
+ *
+ * @param path
+ * @return dynamic string
+ */
+char *path_clean(char *path);
+
+/**
+ * Dir returns all but the last element of path, typically the path's directory.
+ * After dropping the final element using Split, the path is Cleaned and trailing slashes are removed.
+ * If the path is empty, Dir returns ".". If the path consists entirely of slashes followed by non-slash bytes,
+ * Dir returns a single slash. In any other case, the returned path does not end in a slash.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *  char* path1 = path_dir("/a/b/c");
+ *  char* path2 = path_dir("a/b/c");
+ *  char* path3 = path_dir("/a/");
+ *  char* path4 = path_dir("a/");
+ *  char* path5 = path_dir("/");
+ *  char* path6 = path_dir("");
+ *  printf("%s\n", path1);
+ *  printf("%s\n", path2);
+ *  printf("%s\n", path3);
+ *  printf("%s\n", path4);
+ *  printf("%s\n", path5);
+ *  printf("%s\n", path6);
+ *  free(path1);
+ *  free(path2);
+ *  free(path3);
+ *  free(path4);
+ *  free(path5);
+ *  free(path6);
+ *  return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * /a/b
+ * a/b
+ * /a
+ * a
+ * /
+ * .
+ * * *
+ *
+ * @param path
+ * @return dynamic string
+ */
+char *path_dir(char *path);
+
+/**
+ * Ext returns the file name extension used by path.
+ * The extension is the suffix beginning at the final dot in
+ * the final slash-separated element of path; it is empty if there is no dot.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *  char* path1 = path_ext("/a/b/c/bar.css");
+ *  char* path2 = path_ext("/");
+ *  char* path3 = path_ext("");
+ *  printf("%s\n", path1);
+ *  printf("%s\n", path2);
+ *  printf("%s\n", path3);
+ *  free(path1);
+ *  free(path2);
+ *  free(path3);
+ *  return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * .css
+ *
+ *
+ * * *
+ *
+ * @param path
+ * @return dynamic string
+ */
+char *path_ext(char *path);
+
+/**
+ * IsAbs reports whether the path is absolute.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *  printf("%d", path_is_abs("/dev/null"));
+ *  return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * 1
+ * * *
+ *
+ * @param path
+ * @return 1 if it's true and 0 if it's not
+ */
+int path_is_abs(char *path);
+
+/* Return type for _path_match */
+struct _path_match_return {
+    int r0;
+    char *r1;
+};
+
+struct _path_match_return _path_match(char *pattern, char *name);
+
+/* Return type for _path_split */
+struct _path_split_return {
+    char *r0;
+    char *r1;
+};
+
+struct _path_split_return _path_split(char *path);
+
+typedef struct {
+    int is_match;
+    char *error;
+} path_match_t;
+
+typedef struct {
+    char *dir;
+    char *file;
+} path_split_t;
+
+/**
+ * Match reports whether name matches the shell pattern. The pattern syntax is:
+ *
+ * pattern:
+ * 	{ term }
+ * term:
+ * 	'*'         matches any sequence of non-/ characters
+ * 	'?'         matches any single non-/ character
+ * 	'[' [ '^' ] { character-range } ']'
+ * 	            character class (must be non-empty)
+ * 	c           matches character c (c != '*', '?', '\\', '[')
+ * 	'\\' c      matches character c
+ *
+ * character-range:
+ * 	c           matches character c (c != '\\', '-', ']')
+ * 	'\\' c      matches character c
+ * 	lo '-' hi   matches character c for lo <= c <= hi
+ *
+ * Match requires pattern to match all of name, not just a substring.
+ * The only possible returned error is ErrBadPattern, when pattern is malformed.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *  path_match_t* path = path_match("abc", "abc");
+ *  if (path->error != NULL)
+ *  {
+ *    printf("error: %s", path->error);
+ *    path_match_clean(path);
+ *    return -1;
+ *  }
+ *   printf("%d", path->is_match);
+ *   path_match_clean(path);
+ *   return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * 1
+ * * *
+ *
+ * @param pattern
+ * @param name
+ * @return path_match_t pointer
+ */
+path_match_t *path_match(char *pattern, char *name) {
+    path_match_t *self = (path_match_t *) malloc(sizeof(path_match_t));
+    struct _path_match_return match = _path_match(pattern, name);
+    if (self == NULL) {
+        free(match.r1);
+        return NULL;
+    }
+    if (match.r1 != 0) {
+        self->error = (char *) malloc((strlen(match.r1) + 1) * sizeof(char));
+        if (self->error == NULL) {
+            free(match.r1);
+            return NULL;
+        }
+        strncpy(self->error, match.r1, strlen(match.r1));
+        free(match.r1);
+        return self;
+    }
+
+    if (match.r0) {
+        self->is_match = 1;
+    } else {
+        self->is_match = 0;
+    }
+    self->error = NULL;
+
+    return self;
+}
+
+/**
+ * Split splits path immediately following the final slash,
+ * separating it into a directory and file name component.
+ * If there is no slash in path, Split returns an empty dir and file set to path.
+ * The returned values have the property that path = dir+file.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   path_split_t* path = path_split("static/myfile.css");
+ *   printf("dir: %s\n", path->dir);
+ *   printf("file: %s\n", path->file);
+ *   path_split_clean(path);
+ *   return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * dir: static/
+ * file: myfile.css
+ * * *
+ *
+ * @param path
+ * @return path_split_t pointer
+ */
+path_split_t *path_split(char *path) {
+    path_split_t *self = (path_split_t *) malloc(sizeof(path_split_t));
+    struct _path_split_return s = _path_split(path);
+    if (self == NULL) {
+        free(s.r0);
+        free(s.r1);
+        return NULL;
+    }
+    self->dir = s.r0;
+    self->file = s.r1;
+    return self;
+}
+
+/**
+ * function to free the memory after using path_split
+ *
+ * @param self pointer to path_split_t
+ */
+void path_split_clean(path_split_t *self) {
+    if (self != NULL) {
+        if (self->dir != NULL) {
+            free(self->dir);
+        }
+        if (self->file != NULL) {
+            free(self->file);
+        }
+        free(self);
+    }
+}
+
+/**
+ * function to free the memory after using path_match
+ *
+ * @param self pointer to path_match_t
+ */
+void path_match_clean(path_match_t *self) {
+    if (self != NULL) {
+        if (self->error != NULL) {
+            free(self->error);
+        }
+        free(self);
+    }
+}
+
+#endif // __CGO_PATH_H__
