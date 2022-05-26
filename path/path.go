@@ -1,89 +1,3 @@
-/*
-typedef struct {
-  int is_match;
-  char* error;
-} path_match_t;
-
-typedef struct {
-  char* dir;
-  char* file;
-} path_split_t;
-
-path_match_t* path_match(char* pattern, char* name)
-{
-  path_match_t* self = (path_match_t*) malloc(sizeof(path_match_t));
-  struct _path_match_return match = _path_match(pattern, name);
-  if (self == NULL)
-  {
-	free(match.r1);
-	return NULL;
-  }
-  if (match.r1 != 0)
-  {
-    self->error = (char*) malloc((strlen(match.r1) + 1) * sizeof(char));
-  	if (self->error == NULL)
-  	{
-		free(match.r1);
-		return NULL;
-  	}
-    strncpy(self->error, match.r1, strlen(match.r1));
-    free(match.r1);
-    return self;
-  }
-
-  if (match.r0) {
-    self->is_match = 1;
-  } else {
-    self->is_match = 0;
-  }
-  self->error = NULL;
-
-  return self;
-}
-
-path_split_t* path_split(char* path)
-{
-  path_split_t* self = (path_split_t*) malloc(sizeof(path_split_t));
-  struct _path_split_return s = _path_split(path);
-  if (self == NULL)
-  {
-	free(s.r0);
-	free(s.r1);
-	return NULL;
-  }
-  self->dir = s.r0;
-  self->file = s.r1;
-  return self;
-}
-
-void path_split_clean(path_split_t* self)
-{
-	if (self != NULL)
-	{
-		if (self->dir != NULL)
-		{
-			free(self->dir);
-		}
-		if (self->file != NULL)
-		{
-			free(self->file);
-		}
-		free(self);
-	}
-}
-
-void path_match_clean(path_match_t* self)
-{
-	if (self != NULL)
-	{
-		if (self->error != NULL)
-		{
-			free(self->error);
-		}
-		free(self);
-	}
-}
- */
 package main
 
 /*
@@ -92,6 +6,7 @@ package main
  */
 import "C"
 import (
+	"unsafe"
 	p "path"
 )
 
@@ -122,6 +37,16 @@ func path_is_abs(path *C.char) C.int {
 	} else {
 		return C.int(0)
 	}
+}
+
+//export path_join
+func path_join(elem **C.char, length C.int) *C.char {
+  slice := (*[1 << 30]*C.char)(unsafe.Pointer(elem))[:int(length):int(length)]
+  array := []string{}
+  for _ ,v := range slice {
+    array = append(array, C.GoString(v))
+  }
+  return C.CString(p.Join(array...))
 }
 
 //export _path_match

@@ -9,10 +9,7 @@
 #define GO_CGO_EXPORT_PROLOGUE_H
 
 #ifndef GO_CGO_GOSTRING_TYPEDEF
-typedef struct {
-    const char *p;
-    ptrdiff_t n;
-} _GoString_;
+typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 #endif
 
 #endif
@@ -20,11 +17,11 @@ typedef struct {
 /* Start of preamble from import "C" comments.  */
 
 
-#line 89 "path.go"
+#line 3 "path.go"
 
 #include <stdlib.h>
 #include <string.h>
-
+ 
 #line 1 "cgo-generated-wrapper"
 
 
@@ -57,22 +54,15 @@ typedef double _Complex GoComplex128;
   static assertion to make sure the file is being used on architecture
   at least with matching size of GoInt.
 */
-typedef char _check_for_64_bit_pointer_matching_GoInt[sizeof(void *) == 64 / 8 ? 1 : -1];
+typedef char _check_for_64_bit_pointer_matching_GoInt[sizeof(void*)==64/8 ? 1:-1];
 
 #ifndef GO_CGO_GOSTRING_TYPEDEF
 typedef _GoString_ GoString;
 #endif
 typedef void *GoMap;
 typedef void *GoChan;
-typedef struct {
-    void *t;
-    void *v;
-} GoInterface;
-typedef struct {
-    void *data;
-    GoInt len;
-    GoInt cap;
-} GoSlice;
+typedef struct { void *t; void *v; } GoInterface;
+typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 
 #endif
 
@@ -267,6 +257,66 @@ extern __declspec(dllexport) char *path_ext(char *path);
  * @return 1 if it's true and 0 if it's not
  */
 extern __declspec(dllexport) int path_is_abs(char *path);
+
+/**
+ * Join joins any number of path elements into a single path, separating them with slashes.
+ * Empty elements are ignored. The result is Cleaned. However, if the argument list is empty
+ * or all its elements are empty, Join returns an empty string.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   char* arr1[] = {"a", "b", "c"};
+ *   char* arr2[] = {"a", "b/c"};
+ *   char* arr3[] = {"a/b", "c"};
+ *   char* arr4[] = {"a/b", "../../../xyz"};
+ *   char* arr5[] = {"", ""};
+ *   char* arr6[] = {"a", ""};
+ *   char* arr7[] = {"", "a"};
+ *   
+ *   char* path1 = path_join(arr1, 3);
+ *   char* path2 = path_join(arr2, 2);
+ *   char* path3 = path_join(arr3, 2);
+ *   char* path4 = path_join(arr4, 2);
+ *   char* path5 = path_join(arr5, 2);
+ *   char* path6 = path_join(arr6, 2);
+ *   char* path7 = path_join(arr7, 2);
+ *   
+ *   printf("%s\n", path1);
+ *   printf("%s\n", path2);
+ *   printf("%s\n", path3);
+ *   printf("%s\n", path4);
+ *   printf("%s\n", path5);
+ *   printf("%s\n", path6);
+ *   printf("%s\n", path7);
+ *   
+ *   free(path1);
+ *   free(path2);
+ *   free(path3);
+ *   free(path4);
+ *   free(path5);
+ *   free(path6);
+ *   free(path7);
+ *   return 0;
+ * }
+ * * *
+ * Output:
+ * * *
+ * a/b/c
+ * a/b/c
+ * a/b/c
+ * ../xyz
+ *
+ * a
+ * a
+ * * *
+ *
+ * @param elem array
+ * @param length array length
+ * @return dynamic string
+ */
+extern __declspec(dllexport) char* path_join(char** elem, int length);
 
 /* Return type for _path_match */
 struct _path_match_return {
