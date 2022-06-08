@@ -3,6 +3,8 @@ package main
 /*
 #include <stdlib.h>
 
+#define ERR_BAD_PATTERN "syntax error in pattern"
+
 typedef struct {
     int is_match;
     char *error;

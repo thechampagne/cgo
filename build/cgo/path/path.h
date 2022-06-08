@@ -22,6 +22,8 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 #include <stdlib.h>
 
+#define ERR_BAD_PATTERN "syntax error in pattern"
+
 typedef struct {
     int is_match;
     char *error;
