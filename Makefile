@@ -5,13 +5,18 @@ CFLAGS := -Wall -Wextra -std=c99 -pthread
 CGO := go build
 STATIC := -buildmode=c-archive
 SHARED := -buildmode=c-shared
-LIBS := $(SRCBUILD)/path/libpath.a $(SRCBUILD)/path/libpath.so
+LIBS := $(SRCBUILD)/path/path.a $(SRCBUILD)/path/path.so
 
+
+.PHONY: all
 
 all: $(LIBS)
 
-$(SRCBUILD)/path/libpath.a: path/path.go
-	$(CGO) $(STATIC) -o $(SRCBUILD)/path/libpath.a $<
+$(SRCBUILD)/path/path.a: path/path.go
+	$(CGO) $(STATIC) -o $(SRCBUILD)/path/path.a $<
 
-$(SRCBUILD)/path/libpath.so: path/path.go
-	$(CGO) $(SHARED) -o $(SRCBUILD)/path/libpath.so $<
+$(SRCBUILD)/path/path.so: path/path.go
+	$(CGO) $(SHARED) -o $(SRCBUILD)/path/path.so $<
+
+clean:
+	find $(SRCBUILD) -type f \( -name '*.h' -o -name '*.so' -o -name '*.a' \) -delete

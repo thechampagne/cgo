@@ -1,6 +1,25 @@
-package main
+#ifndef __CGO_PATH_H__
+#define __CGO_PATH_H__
 
-/*
+
+#line 1 "cgo-builtin-export-prolog"
+
+#include <stddef.h> /* for ptrdiff_t below */
+
+#ifndef GO_CGO_EXPORT_PROLOGUE_H
+#define GO_CGO_EXPORT_PROLOGUE_H
+
+#ifndef GO_CGO_GOSTRING_TYPEDEF
+typedef struct { const char *p; ptrdiff_t n; } _GoString_;
+#endif
+
+#endif
+
+/* Start of preamble from import "C" comments.  */
+
+
+#line 3 "path.go"
+
 #include <stdlib.h>
 
 typedef struct {
@@ -12,12 +31,57 @@ typedef struct {
     char *dir;
     char *file;
 } path_split_t;
- */
-import "C"
-import (
-	"unsafe"
-	p "path"
-)
+ 
+#line 1 "cgo-generated-wrapper"
+
+
+/* End of preamble from import "C" comments.  */
+
+
+/* Start of boilerplate cgo prologue.  */
+#line 1 "cgo-gcc-export-header-prolog"
+
+#ifndef GO_CGO_PROLOGUE_H
+#define GO_CGO_PROLOGUE_H
+
+typedef signed char GoInt8;
+typedef unsigned char GoUint8;
+typedef short GoInt16;
+typedef unsigned short GoUint16;
+typedef int GoInt32;
+typedef unsigned int GoUint32;
+typedef long long GoInt64;
+typedef unsigned long long GoUint64;
+typedef GoInt64 GoInt;
+typedef GoUint64 GoUint;
+typedef __SIZE_TYPE__ GoUintptr;
+typedef float GoFloat32;
+typedef double GoFloat64;
+typedef float _Complex GoComplex64;
+typedef double _Complex GoComplex128;
+
+/*
+  static assertion to make sure the file is being used on architecture
+  at least with matching size of GoInt.
+*/
+typedef char _check_for_64_bit_pointer_matching_GoInt[sizeof(void*)==64/8 ? 1:-1];
+
+#ifndef GO_CGO_GOSTRING_TYPEDEF
+typedef _GoString_ GoString;
+#endif
+typedef void *GoMap;
+typedef void *GoChan;
+typedef struct { void *t; void *v; } GoInterface;
+typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
+
+#endif
+
+/* End of boilerplate cgo prologue.  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /**
  * Base returns the last element of path. Trailing slashes are removed before extracting the last element.
@@ -49,10 +113,7 @@ import (
  * @param path
  * @return dynamic string
  */
-//export path_base
-func path_base(path *C.char) *C.char {
-	return C.CString(p.Base(C.GoString(path)))
-}
+extern __declspec(dllexport) char* path_base(char* path);
 
 /**
  * Clean returns the shortest path name equivalent to path by purely lexical processing.
@@ -106,10 +167,7 @@ func path_base(path *C.char) *C.char {
  * @param path
  * @return dynamic string
  */
-//export path_clean
-func path_clean(path *C.char) *C.char {
-	return C.CString(p.Clean(C.GoString(path)))
-}
+extern __declspec(dllexport) char* path_clean(char* path);
 
 /**
  * Dir returns all but the last element of path, typically the path's directory.
@@ -155,10 +213,7 @@ func path_clean(path *C.char) *C.char {
  * @param path
  * @return dynamic string
  */
-//export path_dir
-func path_dir(path *C.char) *C.char {
-	return C.CString(p.Dir(C.GoString(path)))
-}
+extern __declspec(dllexport) char* path_dir(char* path);
 
 /**
  * Ext returns the file name extension used by path.
@@ -191,10 +246,7 @@ func path_dir(path *C.char) *C.char {
  * @param path
  * @return dynamic string
  */
-//export path_ext
-func path_ext(path *C.char) *C.char {
-	return C.CString(p.Ext(C.GoString(path)))
-}
+extern __declspec(dllexport) char* path_ext(char* path);
 
 /**
  * IsAbs reports whether the path is absolute.
@@ -215,14 +267,7 @@ func path_ext(path *C.char) *C.char {
  * @param path
  * @return 1 if it's true and 0 if it's not
  */
-//export path_is_abs
-func path_is_abs(path *C.char) C.int {
-	if p.IsAbs(C.GoString(path)) {
-		return C.int(1)
-	} else {
-		return C.int(0)
-	}
-}
+extern __declspec(dllexport) int path_is_abs(char* path);
 
 /**
  * Join joins any number of path elements into a single path, separating them with slashes.
@@ -282,15 +327,7 @@ func path_is_abs(path *C.char) C.int {
  * @param length array length
  * @return dynamic string
  */
-//export path_join
-func path_join(elem **C.char, length C.int) *C.char {
-  slice := (*[1 << 30]*C.char)(unsafe.Pointer(elem))[:int(length):int(length)]
-  array := []string{}
-  for _ ,v := range slice {
-    array = append(array, C.GoString(v))
-  }
-  return C.CString(p.Join(array...))
-}
+extern __declspec(dllexport) char* path_join(char** elem, int length);
 
 /**
  * Match reports whether name matches the shell pattern. The pattern syntax is:
@@ -338,25 +375,7 @@ func path_join(elem **C.char, length C.int) *C.char {
  * @param name
  * @return path_match_t pointer
  */
-//export path_match
-func path_match(pattern, name *C.char) *C.path_match_t {
-	self := (*C.path_match_t) (C.malloc(C.size_t(unsafe.Sizeof(C.path_match_t{}))))
-	matched, err := p.Match(C.GoString(pattern), C.GoString(name))
-	if err != nil {
-		self.error = C.CString(err.Error())
-		return self
-	}
-
-	if matched {
-		self.error = nil
-		self.is_match = 1
-		return self
-	} else {
-		self.error = nil
-		self.is_match = 1
-		return self
-	}
-}
+extern __declspec(dllexport) path_match_t* path_match(char* pattern, char* name);
 
 /**
  * Split splits path immediately following the final slash,
@@ -384,46 +403,24 @@ func path_match(pattern, name *C.char) *C.path_match_t {
  * @param path
  * @return path_split_t pointer
  */
-//export path_split
-func path_split(path *C.char) *C.path_split_t {
-	self := (*C.path_split_t) (C.malloc(C.size_t(unsafe.Sizeof(C.path_split_t{}))))
-	dir, file := p.Split(C.GoString(path))
-	self.dir  =  C.CString(dir)
-	self.file =  C.CString(file)
-	return self
-}
+extern __declspec(dllexport) path_split_t* path_split(char* path);
 
 /**
  * function to free the memory after using path_match
  *
  * @param self pointer to path_match_t
  */
-//export path_match_clean
-func path_match_clean(self *C.path_match_t) {
-	if self != nil {
-		if self.error != nil {
-			C.free(unsafe.Pointer(self.error))
-		}
-		C.free(unsafe.Pointer(self))
-	}
-}
+extern __declspec(dllexport) void path_match_clean(path_match_t* self);
 
 /**
  * function to free the memory after using path_split
  *
  * @param self pointer to path_split_t
  */
-//export path_split_clean
-func path_split_clean(self *C.path_split_t) {
-	if self != nil {
-		if self.dir != nil {
-			C.free(unsafe.Pointer(self.dir))
-		}
-		if self.file != nil {
-			C.free(unsafe.Pointer(self.file))
-		}
-		C.free(unsafe.Pointer(self))
-	}
-}
+extern __declspec(dllexport) void path_split_clean(path_split_t* self);
 
-func main() {}
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __CGO_PATH_H__
