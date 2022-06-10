@@ -94,15 +94,196 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 extern "C" {
 #endif
 
-extern __declspec(dllexport) user_group_t* user_lookup_group(char* name);
-extern __declspec(dllexport) user_group_t* user_lookup_group_id(char* gid);
-extern __declspec(dllexport) user_t* user_current();
-extern __declspec(dllexport) user_t* user_lookup(char* username);
-extern __declspec(dllexport) user_t* user_lookup_id(char* uid);
-extern __declspec(dllexport) user_group_ids_t* user_group_ids(user_t* user);
-extern __declspec(dllexport) void user_clean(user_t* self);
-extern __declspec(dllexport) void user_group_clean(user_group_t* self);
-extern __declspec(dllexport) void user_group_ids_clean(user_group_ids_t* self);
+
+/**
+ * user_lookup_group looks up a group by name. If the group cannot be found, the returned error is of type UnknownGroupError.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_group_t* user = user_lookup_group("[NAME]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("gid: %s\n", user->gid);
+ *   printf("name: %s\n", user->name);
+ *   user_group_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param name
+ * @return user_group_t
+ */
+extern user_group_t* user_lookup_group(char* name);
+
+/**
+ * user_lookup_group_id looks up a group by groupid. If the group cannot be found, the returned error is of type UnknownGroupIdError.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_group_t* user = user_lookup_group_id("[ID]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("gid: %s\n", user->gid);
+ *   printf("name: %s\n", user->name);
+ *   user_group_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param gid
+ * @return user_group_t
+ */
+extern user_group_t* user_lookup_group_id(char* gid);
+
+/**
+ * user_current returns the current user. 
+ * The first call will cache the current user information. 
+ * Subsequent calls will return the cached value and will not reflect changes to the current user.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_current();
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @return user_t
+ */
+extern user_t* user_current();
+
+/**
+ * user_lookup looks up a user by username. If the user cannot be found, the returned error is of type UnknownUserError. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_lookup("[USERNAME]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param username
+ * @return user_t
+ */
+extern user_t* user_lookup(char* username);
+
+/**
+ * user_lookup_id looks up a user by userid. If the user cannot be found, the returned error is of type UnknownUserIdError. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_lookup_id("[ID]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param uid
+ * @return user_t
+ */
+extern user_t* user_lookup_id(char* uid);
+
+/**
+ * user_group_ids returns the list of group IDs that the user is a member of. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_current();
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   user_group_ids_t* gids = user_group_ids(user);
+ *   if (gids->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", gids->error);
+ *     return 1;
+ *   }
+ *   for (size_t i = 0; i < gids->length; i++)
+ *   {
+ *     printf("%s\n", gids->buffer[i]);
+ *   }
+ *   user_group_ids_clean(gids);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param user user_t
+ * @return user_t
+ */
+extern user_group_ids_t* user_group_ids(user_t* user);
+
+/**
+ * function to free the memory after using user_t
+ *
+ * @param self pointer to user_t
+ */
+extern void user_clean(user_t* self);
+
+/**
+ * function to free the memory after using user_group_t
+ *
+ * @param self pointer to user_group_t
+ */
+extern void user_group_clean(user_group_t* self);
+
+/**
+ * function to free the memory after using user_group_ids_t
+ *
+ * @param self pointer to user_group_ids_t
+ */
+extern void user_group_ids_clean(user_group_ids_t* self);
 
 #ifdef __cplusplus
 }

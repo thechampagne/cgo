@@ -30,6 +30,29 @@ import (
   u "os/user"
 )
 
+/**
+ * user_lookup_group looks up a group by name. If the group cannot be found, the returned error is of type UnknownGroupError.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_group_t* user = user_lookup_group("[NAME]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("gid: %s\n", user->gid);
+ *   printf("name: %s\n", user->name);
+ *   user_group_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param name
+ * @return user_group_t
+ */
 //export user_lookup_group
 func user_lookup_group(name *C.char) *C.user_group_t {
   self := (*C.user_group_t) (C.malloc(C.size_t(unsafe.Sizeof(C.user_group_t{}))))
@@ -47,6 +70,29 @@ func user_lookup_group(name *C.char) *C.user_group_t {
   return self
 }
 
+/**
+ * user_lookup_group_id looks up a group by groupid. If the group cannot be found, the returned error is of type UnknownGroupIdError.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_group_t* user = user_lookup_group_id("[ID]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("gid: %s\n", user->gid);
+ *   printf("name: %s\n", user->name);
+ *   user_group_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param gid
+ * @return user_group_t
+ */
 //export user_lookup_group_id
 func user_lookup_group_id(gid *C.char) *C.user_group_t {
   self := (*C.user_group_t) (C.malloc(C.size_t(unsafe.Sizeof(C.user_group_t{}))))
@@ -64,6 +110,33 @@ func user_lookup_group_id(gid *C.char) *C.user_group_t {
   return self
 }
 
+/**
+ * user_current returns the current user. 
+ * The first call will cache the current user information. 
+ * Subsequent calls will return the cached value and will not reflect changes to the current user.
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_current();
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @return user_t
+ */
 //export user_current
 func user_current() *C.user_t {
   self := (*C.user_t) (C.malloc(C.size_t(unsafe.Sizeof(C.user_t{}))))
@@ -87,6 +160,32 @@ func user_current() *C.user_t {
   return self
 }
 
+/**
+ * user_lookup looks up a user by username. If the user cannot be found, the returned error is of type UnknownUserError. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_lookup("[USERNAME]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param username
+ * @return user_t
+ */
 //export user_lookup
 func user_lookup(username *C.char) *C.user_t {
   self := (*C.user_t) (C.malloc(C.size_t(unsafe.Sizeof(C.user_t{}))))
@@ -110,6 +209,32 @@ func user_lookup(username *C.char) *C.user_t {
   return self
 }
 
+/**
+ * user_lookup_id looks up a user by userid. If the user cannot be found, the returned error is of type UnknownUserIdError. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_lookup_id("[ID]");
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   printf("uid: %s\n", user->uid);
+ *   printf("gid: %s\n", user->gid);
+ *   printf("username: %s\n", user->username);
+ *   printf("name: %s\n", user->name);
+ *   printf("home_dir: %s\n", user->home_dir);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param uid
+ * @return user_t
+ */
 //export user_lookup_id
 func user_lookup_id(uid *C.char) *C.user_t {
   self := (*C.user_t) (C.malloc(C.size_t(unsafe.Sizeof(C.user_t{}))))
@@ -133,6 +258,38 @@ func user_lookup_id(uid *C.char) *C.user_t {
   return self
 }
 
+/**
+ * user_group_ids returns the list of group IDs that the user is a member of. 
+ *
+ * Example:
+ * * *
+ * int main()
+ * {
+ *   user_t* user = user_current();
+ *   if (user->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", user->error);
+ *     return 1;
+ *   }
+ *   user_group_ids_t* gids = user_group_ids(user);
+ *   if (gids->error != NULL)
+ *   {
+ *     printf("Something went wrong: %s", gids->error);
+ *     return 1;
+ *   }
+ *   for (size_t i = 0; i < gids->length; i++)
+ *   {
+ *     printf("%s\n", gids->buffer[i]);
+ *   }
+ *   user_group_ids_clean(gids);
+ *   user_clean(user);
+ *   return 0;
+ * }
+ * * *
+ *
+ * @param user user_t
+ * @return user_t
+ */
 //export user_group_ids
 func user_group_ids(user *C.user_t) *C.user_group_ids_t {
   us := u.User{
@@ -164,6 +321,11 @@ func user_group_ids(user *C.user_t) *C.user_group_ids_t {
   return self
 }
 
+/**
+ * function to free the memory after using user_t
+ *
+ * @param self pointer to user_t
+ */
 //export user_clean
 func user_clean(self *C.user_t) {
   if self != nil {
@@ -189,6 +351,11 @@ func user_clean(self *C.user_t) {
   }
 }
 
+/**
+ * function to free the memory after using user_group_t
+ *
+ * @param self pointer to user_group_t
+ */
 //export user_group_clean
 func user_group_clean(self *C.user_group_t) {
   if self != nil {
@@ -205,6 +372,11 @@ func user_group_clean(self *C.user_group_t) {
   }
 }
 
+/**
+ * function to free the memory after using user_group_ids_t
+ *
+ * @param self pointer to user_group_ids_t
+ */
 //export user_group_ids_clean
 func user_group_ids_clean(self *C.user_group_ids_t) {
   if self != nil {
